@@ -1,165 +1,93 @@
 import streamlit as st
-import pandas as pd
 import numpy as np
 import pickle
-import time
-import matplotlib.pyplot as plt
+import os
 
-# -----------------------------
-# Page Config
-# -----------------------------
+# -------------------- PAGE CONFIG --------------------
 st.set_page_config(
-    page_title="AI Micro-Doppler Radar Detection",
+    page_title="Micro-Doppler Radar",
     page_icon="📡",
     layout="wide"
 )
 
-# -----------------------------
-# Custom CSS Styling   
-# -----------------------------
+# -------------------- CUSTOM CSS --------------------
 st.markdown("""
-<style>
-
-.main-title{
-    font-size:40px;
-    font-weight:bold;
-    color:#00FFFF;
-}
-
-.result-box{
-    padding:20px;
-    border-radius:10px;
-    background-color:#111111;
-    color:white;
-    border:2px solid #00FFFF;
-}
-
-.metric-card{
-    background-color:#1f2937;
-    padding:15px;
-    border-radius:10px;
-    color:white;
-    text-align:center;
-}
-
-</style>
+    <style>
+    .title {
+        color: #00C9A7;
+        font-size: 40px;
+        font-weight: bold;
+    }
+    .card {
+        background-color: #1E1E1E;
+        padding: 20px;
+        border-radius: 10px;
+        margin-top: 10px;
+        color: white;
+    }
+    </style>
 """, unsafe_allow_html=True)
 
-# -----------------------------
-# Title
-# -----------------------------
-st.markdown('<p class="main-title">🛰 AI Micro-Doppler Radar Detection</p>', unsafe_allow_html=True)
+# -------------------- TITLE --------------------
+st.markdown('<p class="title">📡 Micro-Doppler Radar Detection</p>', unsafe_allow_html=True)
 
-st.write("Real-time AI system to classify **Drone 🚁 or Bird 🐦** from radar signals.")
+# -------------------- LOAD MODEL --------------------
+model_path = os.path.join(os.path.dirname(__file__), "../model/model.pkl")
 
-# -----------------------------
-# Load Model
-# -----------------------------
 @st.cache_resource
 def load_model():
-    with open("../model/model.pkl", "rb") as f:
-     model = pickle.load(f)
+    try:
+        with open(model_path, "rb") as f:
+            return pickle.load(f)
+    except Exception as e:
+        st.error(f"❌ Model loading failed: {e}")
+        return None
 
 model = load_model()
 
-# -----------------------------
-# Sidebar
-# -----------------------------
-st.sidebar.title("⚙ Radar Control")
+# -------------------- FILE UPLOAD --------------------
+st.subheader("📂 Upload Signal File (CSV with 5000 values)")
 
-simulate = st.sidebar.toggle("Start Radar Simulation")
+uploaded_file = st.file_uploader("Upload your signal file", type=["csv", "txt"])
 
-uploaded_file = st.sidebar.file_uploader(
-    "Upload Radar CSV", type=["csv"]
-)
+# -------------------- PROCESS FILE --------------------
+if uploaded_file is not None:
+    try:
+        # Load data
+        signal = np.loadtxt(uploaded_file, delimiter=",")
 
-# -----------------------------
-# Layout
-# -----------------------------
-col1, col2 = st.columns([2,1])
+        # Flatten if needed
+        signal = signal.flatten()
 
-signal_placeholder = col1.empty()
-result_placeholder = col2.empty()
+        st.markdown('<div class="card">', unsafe_allow_html=True)
+        st.write(f"📏 Signal Length: {len(signal)}")
 
-# -----------------------------
-# Radar Plot
-# -----------------------------
-def plot_signal(signal):
+        # Validate input size
+        if len(signal) != 5000:
+            st.error("❌ Invalid input! File must contain exactly 5000 values.")
+        else:
+            # Show preview
+            st.subheader("📊 Signal Preview")
+            st.line_chart(signal[:200])  # show first 200 points
 
-    fig, ax = plt.subplots()
+            # Prediction
+            if model is None:
+                st.error("⚠️ Model not loaded.")
+            else:
+                prediction = model.predict([signal])[0]
 
-    ax.plot(signal, color="cyan")
-    ax.set_facecolor("black")
+                st.subheader("🎯 Prediction Result")
 
-    ax.set_title("Radar Signal", color="white")
-    ax.set_xlabel("Time", color="white")
-    ax.set_ylabel("Amplitude", color="white")
+                if prediction == 0:
+                    st.success("🟢 Normal Object Detected")
+                else:
+                    st.error("🔴 Suspicious Activity Detected")
 
-    ax.tick_params(colors='white')
+        st.markdown('</div>', unsafe_allow_html=True)
 
-    signal_placeholder.pyplot(fig)
+    except Exception as e:
+        st.error(f"❌ Error reading file: {e}")
 
-# -----------------------------
-# Detection
-# -----------------------------
-def detect(signal):
-
-    features = signal.reshape(1,-1)
-
-    prediction = model.predict(features)[0]
-
-    label = "Drone 🚁" if prediction == 1 else "Bird 🐦"
-
-    confidence = np.random.uniform(0.85,0.99)
-
-    result_placeholder.markdown(f"""
-    <div class="result-box">
-
-    ### Detection Result
-
-    Target : **{label}**
-
-    Confidence : **{confidence:.2f}**
-
-    </div>
-    """, unsafe_allow_html=True)
-
-# -----------------------------
-# Upload Mode
-# -----------------------------
-if uploaded_file:
-
-    df = pd.read_csv(uploaded_file, header=None)
-
-    signal = df.iloc[0,:5000].values
-
-    plot_signal(signal)
-
-    if st.button("Run Detection"):
-        detect(signal)
-
-# -----------------------------
-# Radar Simulation
-# -----------------------------
-if simulate:
-
-    st.subheader("📡 Radar Scanning")
-
-    for i in range(15):
-
-        signal = (
-            np.sin(np.linspace(0,20,5000))
-            + np.random.normal(0,0.3,5000)
-        )
-
-        plot_signal(signal)
-
-        detect(signal)
-
-        time.sleep(1)
-
-# -----------------------------
-# Footer
-# -----------------------------
+# -------------------- FOOTER --------------------
 st.markdown("---")
-st.caption("AI Radar Detection System | Streamlit Dashboard")
+st.markdown("Made with ❤️ using Streamlit")
