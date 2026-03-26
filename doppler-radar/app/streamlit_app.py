@@ -9,13 +9,13 @@ import matplotlib.pyplot as plt
 # Page Config
 # -----------------------------
 st.set_page_config(
-    page_title="AI Radar Detection",
+    page_title="AI Micro-Doppler Radar Detection",
     page_icon="📡",
     layout="wide"
 )
 
 # -----------------------------
-# Custom CSS Styling
+# Custom CSS Styling   
 # -----------------------------
 st.markdown("""
 <style>
