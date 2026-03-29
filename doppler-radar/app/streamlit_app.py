@@ -3,14 +3,14 @@ import numpy as np
 import pickle
 import os
 
-# -------------------- PAGE CONFIG --------------------
+# ------ PAGE CONFIG -----
 st.set_page_config(
     page_title="Micro-Doppler Radar",
     page_icon="📡",
     layout="wide"
 )
 
-# -------------------- CUSTOM CSS --------------------
+#------ CUSTOM CSS ------
 st.markdown("""
     <style>
     .title {
@@ -65,7 +65,7 @@ if uploaded_file is not None:
         # Validate input size
         if len(signal) != 5000:
             st.error("❌ Invalid input! File must contain exactly 5000 values.")
-        else:
+        else: 
             # Show preview
             st.subheader("📊 Signal Preview")
             st.line_chart(signal[:200])  # show first 200 points
@@ -90,4 +90,4 @@ if uploaded_file is not None:
 
 # -------------------- FOOTER --------------------
 st.markdown("---")
-st.markdown("Made with ❤️ using Streamlit")
+st.markdown("Made with ❤️ using Streamlit")  
