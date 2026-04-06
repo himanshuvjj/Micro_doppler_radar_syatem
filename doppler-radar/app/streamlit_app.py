@@ -28,7 +28,7 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# -------------------- TITLE --------------------
+# ---- TITLE ------
 st.markdown('<p class="title">📡 Micro-Doppler Radar Detection</p>', unsafe_allow_html=True)
 
 # -------------------- LOAD MODEL --------------------
@@ -45,12 +45,12 @@ def load_model():
 
 model = load_model()
 
-# -------------------- FILE UPLOAD --------------------
+# ----- FILE UPLOAD ----
 st.subheader("📂 Upload Signal File (CSV with 5000 values)")
 
 uploaded_file = st.file_uploader("Upload your signal file", type=["csv", "txt"])
 
-# -------------------- PROCESS FILE --------------------
+# ---- PROCESS FILE ----
 if uploaded_file is not None:
     try:
         # Load data
